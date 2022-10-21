@@ -1,0 +1,191 @@
+---
+title: "Linear Models"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+Much of the tutorial below is derived from: 
+https://www.datacamp.com/community/tutorials/linear-regression-R
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(lubridate)
+library(tidyverse)
+library(modelr)
+```
+Why is regression important?
+"Linear regression is one of the most basic statistical models out there, its results can be interpreted by almost everyone, and it has been around since the 19th century. This is precisely what makes linear regression so popular. It’s simple, and it has survived for hundreds of years. Even though it is not as sophisticated as other algorithms like artificial neural networks or random forests, according to a survey made by KD Nuggets, regression was the algorithm most used by data scientists in 2016 and 2017."
+
+Read in and look at ageht dataset, call it "kids"
+Make a plot with age on the x axis, height on the y, and show the data as points.
+Save the plot as "ht"
+```{r}
+kids <- read_csv("ageht.csv")
+ 
+theme_set(theme_classic())
+
+ht <- ggplot(kids, aes(age, height))+
+  geom_point()+
+  ylab("Height (cm)")+
+  xlab("Age (months)")
+
+ht
+```
+
+Let's make a model to use age to predict height. To do this we will use the linear model function in R: lm().
+You give lm() data in the following format: lm(target~predictor, data)
+```{r, fig.height = 4}
+#model output = lm( target variable (Y) ~ predictor variable (X), data)
+model <- lm(height~age, data = kids)
+
+#look at the results
+model
+
+#they give you the intercept and the slope (expressed as the target variable)
+#can you write a linear model from this output?
+
+
+#let's put the line on our plot
+#ht + geom_abline(slope = 0.635, intercept = 64.928)
+
+#alternatively, in case you change the model or data later
+#reference the model coefficients 
+ht + geom_abline(slope = model$coefficients[2], intercept = model$coefficients[1], color = "blue")
+
+```
+Finally, there is a tidy way to look at the line fit as well.
+The function add_predictions() take our model as input and generates predicted y values for each x automatically. This is especially helpful if our model prediction isn't just a straight line.
+```{r, fig.height = 4}
+kids <- kids %>%
+  add_predictions(model)
+
+ggplot(kids, aes(age, height))+
+  geom_point()+
+  geom_line(aes(y = pred), color = "red")
+```
+
+How well does this line represent the relationship?
+
+```{r}
+#summary() will give you a bunch of informaton about the model
+#let's look at what is there and see if we can decide
+#if the model is good
+summary(model)
+
+#Summary gave us some information about the residuals
+#but we can also plot them to look for patterns
+kids <- kids %>%
+  add_residuals(model)
+
+ggplot(kids, aes(age, resid))+
+  geom_point()+
+  geom_hline(yintercept = 0)
+  
+```
+
+Okay, now try for yourself using the pressure dataset.
+read it in as 'p'
+plot temp (x) vs pressure (y) as points
+create a linear model of the relationship between pressure and temperature
+add predictions and residuals to 'p'
+plot the model predictions as a line with the points
+generate a summary of the linear model
+plot the residuals
+
+Is this a good fit? Explain.
+
+```{r}
+#read file
+p <- read_csv("pressure.csv")
+
+#plot
+ggplot(p, aes(Temperature, Pressure))+
+  geom_point()
+
+#fit and save model
+pm <- lm(Pressure~Temperature, p)
+
+#add model predictions and residuals to the data
+p <- p %>%
+  add_predictions(pm) %>%
+  add_residuals(pm)
+
+#add line to plot
+ggplot(p, aes(Temperature, Pressure))+
+  geom_point()+
+  geom_line(aes(y = pred), color = "red")
+
+#how good is the fit?
+summary(pm)
+
+#look at residuals 
+ggplot(p, aes(Temperature, resid))+
+  geom_point()+
+  geom_hline(yintercept = 0)
+
+```
+
+One way to create a model that would fit these data is given below. Basically, if we take the log10 of Pressure and plot that, it looks linear. So we can fit a linear model to the log10 of Pressure. 
+
+We can use that model to generate predictions, which will predic log10(pressure), so to get just the regular pressure, we can do 10^prediction. If you used log() instead of log() the inverse would be exp(). 
+
+```{r}
+p2 <-mutate(p, logp = log10(Pressure))
+
+p2model <- lm(logp~Temperature, p2)
+
+p2 <- p2 %>% add_predictions(p2model)
+
+#show the fit with the logged pressure values
+ggplot(p2, aes(Temperature, logp))+
+    geom_point()+
+    geom_line(aes(y = pred), color = "red")
+
+#take 10^ of the modeled pressure values to get regular pressure
+ggplot(p2, aes(Temperature, Pressure))+
+     geom_point()+
+     geom_line(aes(y = 10^pred), color = "red")
+
+```
+
+
+A quick way to explore linear relationships with ggplot
+
+```{r, fig.height = 3}
+kids %>% ggplot(aes(age, height))+
+  geom_point()+
+  stat_smooth(method = 'lm')
+```
+
+Now for an example of why it is so important to plot our data, not just run models/stats on it.
+
+We will first read the DatasaurusDozen file, and then perform some statistics on the groups within.
+
+From this analysis, what can you say about the 12 groups in the data?
+
+```{r}
+DD <- read_tsv("DatasaurusDozen.tsv")
+
+unique(DD$dataset)
+
+DD %>% group_by(dataset) %>%
+  summarize(meanx = mean(x), 
+            meany = mean(y),
+            sdx = sd(x), 
+            sdy = sd(y),
+            R2lm = summary(lm(y~x))$r.squared,
+            corrxy = cor(x,y))
+```
+Now plot the data plot x as x, y as y, and use facet wrap to make a different plot for each dataset.
+
+Does this change your interpretation from above? 
+
+```{r}
+ggplot(DD, aes(x,y))+
+  geom_point()+
+  facet_wrap(vars(dataset))
+```
+
+ 

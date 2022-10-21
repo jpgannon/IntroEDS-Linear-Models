@@ -1,0 +1,58 @@
+---
+title: "Linear Models"
+author: "Name"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load libraries lubridate, tidyverse, and modelr
+
+```{r}
+
+```
+
+Find the equation of the line and its R^2 that fits the Ozone (Y) and Temp (X) data in the air quality dataset (included in R). 
+
+Equation: 
+R^2:
+
+```{r}
+airquality <- airquality
+```
+
+Plot the points and the line that you fit to them.
+Plot the residuals of the model fit.
+
+Is this a good fit? Why or why not? What does this mean with regard to the relationship between Ozone and Temperature?
+
+```{r}
+
+```
+
+Read the global temp and mauna loa co2 files into R. Be careful, remember from the test these files have headers.
+
+We want to look at the relationship between co2 and global temp. So we need to combine the temp data and the co2 data.
+
+We can't just paste them next to each other because the number of years is different in each file. BUT! We could match the years we have in both datasets in order to create a new dataframe that has the co2 and temp records for each year in which we have both.
+
+To do this, we need to JOIN the temp data to the co2 data. Specifically we want to use a LEFT JOIN (left_join()) to join the temp data to the co2 data BY the year columns.
+
+This is a new concept, so this is a good opportunity to test your ability to figure out how to use a new function using documentation on the web. Below are two links that describe how joins work and what a left join does. 
+
+https://vt-hydroinformatics.github.io/getdata.html#joins
+https://r4ds.had.co.nz/relational-data.html#understanding-joins
+
+After reading about joins:
+
+Use a left_join() with co2 data on the left and temp on the right, joining by year, to join those two datasets.
+
+Make a plot of co2 concentration on the x axis and temperature on the y. Show the data as points. Make a linear model that fits the data and add a line to the plot.
+
+Describe the fit of the line. Is it good? How do you know?
+```{r}
+
+```
+
