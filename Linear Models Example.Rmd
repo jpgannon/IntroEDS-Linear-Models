@@ -25,14 +25,7 @@ Make a plot with age on the x axis, height on the y, and show the data as points
 Save the plot as "ht"
 
 ```{r}
-theme_set(theme_classic())
 
-kids <- read_csv("ageht.csv")
-
-ht <- ggplot(kids, aes(age, height)) +
-  geom_point()
-
-ht
 ```
 
 Let's make a model to use age to predict height. To do this we will use the linear model function in R: lm().
@@ -42,10 +35,10 @@ In other words: lm(y~x, data)
 
 ```{r, fig.height = 4}
 #model output = lm( target variable (Y) ~ predictor variable (X), data)
-model <- lm(height~age, kids)
+
 
 #look at the results
-model
+
 
 #they give you the intercept and the slope (expressed as the target variable)
 #can you write a linear model from this output?
@@ -56,13 +49,11 @@ model
 # height = 0.635*age + 64.928
 
 #let's put the line on our plot
-ht + geom_abline(slope = 0.635, intercept = 64.928)
+
 
 #alternatively, in case you change the model or data later
 #reference the model coefficients 
-ht + geom_abline(slope = model$coefficients[2], 
-                 intercept = model$coefficients[1], 
-                 color = "blue")
+
 
 ```
 
@@ -70,12 +61,7 @@ Finally, there is a tidy way to look at the line fit as well.
 The function add_predictions() takes our model as input and generates predicted y values for each x automatically. This is especially helpful if our model prediction isn't just a straight line.
 
 ```{r, fig.height = 4}
-kids <- kids %>% 
-  add_predictions(model)
 
-ggplot(kids, aes(age, height))+
-  geom_point()+
-  geom_line(aes(y = pred), color = "red")
 ```
 
 How well does this line represent the relationship?
@@ -84,16 +70,11 @@ How well does this line represent the relationship?
 #summary() will give you a bunch of information about the model
 #let's look at what is there and see if we can decide
 #if the model is good
-summary(model)
+
 
 #Summary gave us some information about the residuals
 #but we can also plot them to look for patterns
-kids <- kids %>% 
-  add_residuals(model)
 
-ggplot(kids, aes(x = age, y = resid))+
-  geom_point()+
-  geom_hline(yintercept = 0)
 ```
 
 Okay, now try for yourself using the pressure dataset.
@@ -109,32 +90,25 @@ Is this a good fit? Explain.
 
 ```{r}
 #read file
-p <- read_csv("pressure.csv")
+
 
 #plot
-ggplot(p, aes(x = Temperature, y = Pressure))+
-  geom_point()
+
 
 #fit and save model
-pm <- lm(Pressure~Temperature, p)
+
 
 #add model predictions and residuals to the data
-p <- p %>%
-  add_predictions(pm) %>%
-  add_residuals(pm)
+
 
 #add line to plot
-ggplot(p, aes(x = Temperature, y = Pressure))+
-  geom_point()+
-  geom_line(aes(y = pred), color = "red")
+
 
 #how good is the fit?
-summary(pm)
+
 
 #look at residuals 
-ggplot(p, aes(x = Temperature, y = resid))+
-  geom_point()+
-  geom_hline(yintercept = 0)
+
 
 ```
 One way to create a model that would fit these data is given below. Basically, if we take the log10 of Pressure and plot that, it looks linear. So we can fit a linear model to the log10 of Pressure. 
@@ -142,30 +116,20 @@ One way to create a model that would fit these data is given below. Basically, i
 We can use that model to generate predictions, which will predic log10(pressure), so to get just the regular pressure, we can do 10^prediction. If you used log() instead of log() the inverse would be exp(). 
 
 ```{r}
-p2 <- mutate(p, logp = log10(Pressure))
 
-p2model <- lm(logp~Temperature, p2)
-
-p2 <- p2 %>% add_predictions(p2model)
 
 #show the fit with the logged pressure values
-ggplot(p2, aes(Temperature, logp))+
-    geom_point()+
-    geom_line(aes(y = pred), color = "red")
+
 
 #take 10^ of the modeled pressure values to get regular pressure
-ggplot(p2, aes(Temperature, Pressure))+
-     geom_point()+
-     geom_line(aes(y = 10^pred), color = "red")
+
 
 ```
 
 A quick way to explore linear relationships with ggplot
 
 ```{r, fig.height = 3}
-kids %>% ggplot(aes(age, height))+
-  geom_point()+
-  stat_smooth(method = "lm")
+
 ```
 
 Now for an example of why it is so important to plot our data, not just run models/stats on it.
